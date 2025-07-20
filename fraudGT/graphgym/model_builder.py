@@ -5,6 +5,7 @@ from fraudGT.graphgym.models.gnn import GNN
 from fraudGT.graphgym.register import network_dict, register_network
 
 register_network('gnn', GNN)
+register_network('MultiFraudGT', MultiFraudGT)
 
 
 def create_model(to_device=True, dim_in=None, dim_out=None, dataset=None):

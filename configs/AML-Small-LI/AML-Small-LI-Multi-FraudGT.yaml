@@ -5,7 +5,7 @@ wandb:
   use: True
   project: unifiedGT
 dataset:
-  dir: /nobackup/users/junhong/Data
+  dir: /content/drive/MyDrive/aml/data/kaggle_datasets/ibm_aml/raw
   format: AML
   name: Small-LI
   task: hetero_edge
@@ -36,7 +36,7 @@ val:
   iter_per_epoch: 128
   tqdm: True
 model:
-  type: MLPModel
+  type: MultiFraudGT
   loss_fun: weighted_cross_entropy
   loss_fun_weight: [1, 6]
   edge_decoding: dot

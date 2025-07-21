@@ -5,7 +5,7 @@ wandb:
   use: True
   project: unifiedGT
 dataset:
-  dir: /nobackup/users/junhong/Data
+  dir: /content/drive/MyDrive/aml/data/kaggle_datasets/ibm_aml/raw
   format: AML
   name: Small-LI
   task: hetero_edge

@@ -1,0 +1,86 @@
+out_dir: /nobackup/users/junhong/Logs/results
+metric_best: f1
+seed: 42
+wandb:
+  use: True
+  project: unifiedGT
+dataset:
+  dir: /content/drive/MyDrive/aml/data/kaggle_datasets/ibm_aml/raw
+  format: AML
+  name: Small-LI
+  reverse_mp: True
+  add_ports: True
+  task: hetero_edge
+  task_type: classification
+  task_entity: ('node', 'to', 'node')
+  transductive: True
+  node_encoder: True
+  node_encoder_name: Hetero_Raw
+  node_encoder_bn: False
+  edge_encoder: True
+  edge_encoder_name: Hetero_Raw
+  edge_encoder_bn: False
+num_threads: 24
+num_workers: 18
+train:
+  mode: custom
+  sampler: link_neighbor
+  neighbor_sizes: [50, 50] # 50 * 2
+  add_ego_id: True
+  iter_per_epoch: 256
+  batch_size: 2048
+  eval_period: 4
+  ckpt_period: 100
+  tqdm: True
+  persistent_workers: True
+  pin_memory: True
+val:
+  sampler: link_neighbor
+  iter_per_epoch: 256
+  tqdm: True
+model:
+  model:
+  type: GTModel
+  loss_fun: weighted_cross_entropy
+  loss_fun_weight: [1, 10]        # 클래스 불균형 보정 강화
+  edge_decoding: dot
+  graph_pooling: mean
+gt:
+  layer_type: SparseNodeTransformer
+  layers_pre_gt: 0
+  layers: 3                       # 레이어 증가
+  layers_post_gt: 3
+  attn_heads: 8
+  dim_hidden: 128                # 표현력 향상
+  input_dropout: 0.0
+  dropout: 0.1                   # 과적합 완화
+  attn_dropout: 0.2              # 안정화
+  batch_norm: True               # 안정성 증가
+  layer_norm: True
+  l2_norm: False
+  act: gelu
+  attn_mask: Edge
+  residual: Fixed
+  ffn: Type
+  jumping_knowledge: True        # 깊은 레이어 활용
+gnn:
+  dropout: 0.1
+optim:
+  batch_accumulation: 8
+  clip_grad_norm: True
+  optimizer: adamW
+  weight_decay: 1e-5
+  base_lr: 0.0007                # 더 부드러운 학습
+  max_epoch: 50                  # 충분한 학습 횟수 확보
+  scheduler: cosine_with_warmup
+  num_warmup_epochs: 5
+#optim:
+#  clip_grad_norm: True
+#  optimizer: adamW
+#  weight_decay: 1e-5
+#  base_lr: 0.0001
+#  max_epoch: 100
+#  scheduler: reduce_on_plateau
+#  reduce_factor: 0.5
+#  schedule_patience: 5
+#  min_lr: 1e-6

@@ -41,27 +41,27 @@ val:
 model:
   type: GTModel
   loss_fun: weighted_cross_entropy
-  loss_fun_weight: [1, 10]        # 클래스 불균형 보정 강화
+  loss_fun_weight: [1, 10]       
   edge_decoding: dot
   graph_pooling: mean
 gt:
   layer_type: SparseNodeTransformer
   layers_pre_gt: 0
-  layers: 3                       # 레이어 증가
+  layers: 3                      
   layers_post_gt: 3
   attn_heads: 8
   dim_hidden: 64
   input_dropout: 0.0
-  dropout: 0.1                   # 과적합 완화
-  attn_dropout: 0.2              # 안정화
-  batch_norm: True               # 안정성 증가
+  dropout: 0.1                   
+  attn_dropout: 0.2              
+  batch_norm: True               
   layer_norm: True
   l2_norm: False
   act: gelu
   attn_mask: Edge
   residual: Fixed
   ffn: Type
-  jumping_knowledge: False        # 깊은 레이어 활용
+  jumping_knowledge: False        
 gnn:
   dropout: 0.1
 optim:
@@ -69,8 +69,8 @@ optim:
   clip_grad_norm: True
   optimizer: adamW
   weight_decay: 1e-5
-  base_lr: 0.0007                # 더 부드러운 학습
-  max_epoch: 100                  # 충분한 학습 횟수 확보
+  base_lr: 0.0007               
+  max_epoch: 100                
   scheduler: cosine_with_warmup
   num_warmup_epochs: 5
 #optim:

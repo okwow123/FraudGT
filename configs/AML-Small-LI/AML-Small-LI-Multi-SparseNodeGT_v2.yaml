@@ -61,7 +61,7 @@ gt:
   attn_mask: Edge
   residual: Fixed
   ffn: Type
-  jumping_knowledge: False        
+  jumping_knowledge: False        
 gnn:
   dropout: 0.1
 optim:

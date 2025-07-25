@@ -61,7 +61,7 @@ gt:
   attn_mask: Edge
   residual: Fixed
   ffn: Type
-  jumping_knowledge: True        # 깊은 레이어 활용
+  jumping_knowledge: False        # 깊은 레이어 활용
 gnn:
   dropout: 0.1
 optim:

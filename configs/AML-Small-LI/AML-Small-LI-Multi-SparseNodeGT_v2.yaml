@@ -51,7 +51,6 @@ gt:
   layers_post_gt: 3
   attn_heads: 8
   dim_hidden: 64
-  jumping_knowledge: False   # 또는 cat을 사용하되 이후 차원 조정 필요
   input_dropout: 0.0
   dropout: 0.1                   # 과적합 완화
   attn_dropout: 0.2              # 안정화

@@ -70,7 +70,7 @@ optim:
   optimizer: adamW
   weight_decay: 1e-5
   base_lr: 0.0007                # 더 부드러운 학습
-  max_epoch: 50                  # 충분한 학습 횟수 확보
+  max_epoch: 100                  # 충분한 학습 횟수 확보
   scheduler: cosine_with_warmup
   num_warmup_epochs: 5
 #optim:

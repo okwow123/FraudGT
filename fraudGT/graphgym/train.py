@@ -1,88 +1,44 @@
-import logging
-import time
 
 import torch
+import torch.nn.functional as F
+from tqdm import tqdm
 
-from fraudGT.graphgym.checkpoint import clean_ckpt, load_ckpt, save_ckpt
-from fraudGT.graphgym.config import cfg
-from fraudGT.graphgym.loss import compute_loss
-from fraudGT.graphgym.utils.epoch import is_ckpt_epoch, is_eval_epoch
-
-
-def train_epoch(logger, loader, model, optimizer, scheduler):
+def train(model, data_loader, optimizer, criterion, device, mem_weight=1.0):
     model.train()
-    time_start = time.time()
-    for batch in loader:
-        batch.split = 'train'
+    total_loss = 0
+    for data in tqdm(data_loader, desc="Training"):
+        data = data.to(device)
         optimizer.zero_grad()
-        batch.to(torch.device(cfg.device))
-        pred, true = model(batch)
-        loss, pred_score = compute_loss(pred, true)
+
+        output = model(data)
+        loss = criterion(output, data.y)
+
+        # Include MEM loss if applicable
+        if hasattr(model, "mem_loss") and model.mem_loss is not None:
+            loss += mem_weight * model.mem_loss
+
         loss.backward()
         optimizer.step()
-        logger.update_stats(true=true.detach().cpu(),
-                            pred=pred_score.detach().cpu(),
-                            loss=loss.item(),
-                            lr=scheduler.get_last_lr()[0],
-                            time_used=time.time() - time_start,
-                            params=cfg.params)
-        time_start = time.time()
-    scheduler.step()
+        total_loss += loss.item()
 
+    return total_loss / len(data_loader)
 
-@torch.no_grad()
-def eval_epoch(logger, loader, model, split='val'):
+def evaluate(model, data_loader, criterion, device):
     model.eval()
-    time_start = time.time()
-    for batch in loader:
-        batch.split = split
-        batch.to(torch.device(cfg.device))
-        pred, true = model(batch)
-        loss, pred_score = compute_loss(pred, true)
-        logger.update_stats(true=true.detach().cpu(),
-                            pred=pred_score.detach().cpu(),
-                            loss=loss.item(),
-                            lr=0,
-                            time_used=time.time() - time_start,
-                            params=cfg.params)
-        time_start = time.time()
+    total_loss = 0
+    correct = 0
+    total = 0
 
+    with torch.no_grad():
+        for data in tqdm(data_loader, desc="Evaluating"):
+            data = data.to(device)
+            output = model(data)
+            loss = criterion(output, data.y)
 
-def train(loggers, loaders, model, optimizer, scheduler):
-    r"""
-    The core training pipeline
+            total_loss += loss.item()
+            preds = output.argmax(dim=1)
+            correct += (preds == data.y).sum().item()
+            total += data.y.size(0)
 
-    Args:
-        loggers: List of loggers
-        loaders: List of loaders
-        model: GNN model
-        optimizer: PyTorch optimizer
-        scheduler: PyTorch learning rate scheduler
-
-    """
-    start_epoch = 0
-    if cfg.train.auto_resume:
-        start_epoch = load_ckpt(model, optimizer, scheduler)
-    if start_epoch == cfg.optim.max_epoch:
-        logging.info('Checkpoint found, Task already done')
-    else:
-        logging.info('Start from epoch {}'.format(start_epoch))
-
-    num_splits = len(loggers)
-    split_names = ['val', 'test']
-    for cur_epoch in range(start_epoch, cfg.optim.max_epoch):
-        train_epoch(loggers[0], loaders[0], model, optimizer, scheduler)
-        loggers[0].write_epoch(cur_epoch)
-        if is_eval_epoch(cur_epoch):
-            for i in range(1, num_splits):
-                eval_epoch(loggers[i], loaders[i], model,
-                           split=split_names[i - 1])
-                loggers[i].write_epoch(cur_epoch)
-        if is_ckpt_epoch(cur_epoch):
-            save_ckpt(model, optimizer, scheduler, cur_epoch)
-    for logger in loggers:
-        logger.close()
-    if cfg.train.ckpt_clean:
-        clean_ckpt()
-
-    logging.info('Task done, results saved in {}'.format(cfg.out_dir))
+    accuracy = correct / total if total > 0 else 0
+    return total_loss / len(data_loader), accuracy

@@ -1,5 +1,5 @@
 import torch.nn as nn
-from fraudGT.layer.gt_layer import GTLayerMEM
+from fraudGT.layer.gt_layer import GTLayer
 
 class GTModel(nn.Module):
     def __init__(self, dim_in, dim_out, dataset=None):

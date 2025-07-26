@@ -16,20 +16,20 @@ from fraudGT.timer import runtime_stats_cuda, is_performance_stats_enabled, enab
 
 
 
-    def mask_edge_features(self, edge_attr, mask_ratio=0.15):
-        """Randomly mask a portion of edge features."""
-        if mask_ratio <= 0.0:
-            return edge_attr, None, None
-        mask = torch.rand(edge_attr.size(0), device=edge_attr.device) < mask_ratio
-        masked_edge_attr = edge_attr.clone()
-        masked_edge_attr[mask] = 0  # mask out edge features
-        return masked_edge_attr, mask, edge_attr  # original saved for prediction
+def mask_edge_features(self, edge_attr, mask_ratio=0.15):
+    """Randomly mask a portion of edge features."""
+    if mask_ratio <= 0.0:
+        return edge_attr, None, None
+    mask = torch.rand(edge_attr.size(0), device=edge_attr.device) < mask_ratio
+    masked_edge_attr = edge_attr.clone()
+    masked_edge_attr[mask] = 0  # mask out edge features
+    return masked_edge_attr, mask, edge_attr  # original saved for prediction
 
-    def compute_mem_loss(self, predicted, target, mask):
-        """Compute loss for masked edge modeling."""
-        if mask is None or not mask.any():
-            return 0.0
-        return F.mse_loss(predicted[mask], target[mask])
+def compute_mem_loss(self, predicted, target, mask):
+    """Compute loss for masked edge modeling."""
+    if mask is None or not mask.any():
+        return 0.0
+    return F.mse_loss(predicted[mask], target[mask])
 class GTLayer(nn.Module):
     r"""Graph Transformer layer
 

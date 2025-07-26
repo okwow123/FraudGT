@@ -3,10 +3,12 @@ import torch
 from fraudGT.graphgym.config import cfg
 from fraudGT.graphgym.models.gnn import GNN
 from fraudGT.graphgym.register import network_dict, register_network
-#from fraudGT.models.multi_fraudgt import MultiFraudGT
+from fraudGT.models.gt_model import GTModel  # 새로 만든 파일
+
+
 
 register_network('gnn', GNN)
-#register_network('MultiFraudGT', MultiFraudGT)
+register_network('GTModel', GTModel)
 
 
 def create_model(to_device=True, dim_in=None, dim_out=None, dataset=None):

@@ -25,7 +25,7 @@ num_workers: 18
 train:
   mode: custom
   sampler: link_neighbor
-  neighbor_sizes: [50, 50] # 50 * 2
+  neighbor_sizes: [50, 50, 50] # 50 * 2
   add_ego_id: True
   iter_per_epoch: 256
   batch_size: 2048
@@ -41,14 +41,14 @@ val:
 model:
   type: GTModel
   loss_fun: weighted_cross_entropy
-  loss_fun_weight: [1, 6]
+  loss_fun_weight: [1, 5]
   edge_decoding: dot
   graph_pooling: mean
 gt:
   layer_type: SparseNodeTransformer
   layers_pre_gt: 0
-  layers: 2
-  layers_post_gt: 2
+  layers: 3
+  layers_post_gt: 1
   attn_heads: 8
   dim_hidden: 64  # `gt.dim_hidden` must match `gnn.dim_inner`
   input_dropout: 0.0
@@ -68,8 +68,8 @@ optim:
   batch_accumulation: 8
   clip_grad_norm: True
   optimizer: adamW
-  weight_decay: 1e-5
-  base_lr: 0.001
+  weight_decay: 5e-6
+  base_lr: 0.0007
   max_epoch: 100
   scheduler: cosine_with_warmup
   num_warmup_epochs: 5

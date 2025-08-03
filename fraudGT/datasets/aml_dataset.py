@@ -236,6 +236,12 @@ class AMLDataset(TemporalDataset):
         print(f'Available Edge Features: {df_edges.columns.tolist()}')
 
         df_edges['Timestamp'] = df_edges['Timestamp'] - df_edges['Timestamp'].min()
+        # ===[여기 추가]===
+        df_edges['Datetime'] = pd.to_datetime(df_edges['Timestamp'] + df_edges['Timestamp'].min(), unit='s')
+        df_edges['Hour'] = df_edges['Datetime'].dt.hour
+        df_edges['Weekday'] = df_edges['Datetime'].dt.weekday
+        df_edges['TimeDiff'] = df_edges['Timestamp'].diff().fillna(0)
+    
 
         max_n_id = df_edges.loc[:, ['from_id', 'to_id']].to_numpy().max() + 1
         df_nodes = pd.DataFrame({'NodeID': np.arange(max_n_id), 'Feature': np.ones(max_n_id)})
@@ -246,7 +252,9 @@ class AMLDataset(TemporalDataset):
         print(f"Number of nodes (holdings doing transcations) = {df_nodes.shape[0]}")
         print(f"Number of transactions = {df_edges.shape[0]}")
 
-        edge_features = ['Timestamp', 'Amount Received', 'Received Currency', 'Payment Format']
+        #edge_features = ['Timestamp', 'Amount Received', 'Received Currency', 'Payment Format']
+        edge_features = ['Timestamp', 'Amount Received', 'Received Currency', 'Payment Format','Hour','Weekday', 'TimeDiff']
+        
         node_features = ['Feature']
 
         print(f'Edge features being used: {edge_features}')

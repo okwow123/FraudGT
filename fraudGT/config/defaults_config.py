@@ -89,3 +89,7 @@ def extended_cfg(cfg):
     cfg.gnn.jumping_knowledge = False
 
     cfg.model.loss_fun_weight = []
+    
+    cfg.model.cb_beta = 0.99
+    cfg.model.cb_gamma = 1.5
+    cfg.model.loss_class_counts = []

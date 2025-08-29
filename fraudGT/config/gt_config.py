@@ -101,3 +101,7 @@ def set_cfg_gt(cfg):
     # cfg.gt.bigbird.block_size = 3
 
     # cfg.gt.bigbird.layer_norm_eps = 1e-6
+    #masking option 변경
+    cfg.data.edge_mask_ratio = 0.15   # 엣지 피처 마스킹 비율
+    cfg.data.node_mask_ratio = 0.0    # (선택) 노드 피처도 마스킹할 경우
+

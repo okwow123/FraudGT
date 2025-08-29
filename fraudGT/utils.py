@@ -244,22 +244,3 @@ def unbatch_edge_index(edge_index: Tensor, batch: Tensor) -> List[Tensor]:
     sizes = degree(edge_batch, dtype=torch.int64).cpu().tolist()
     return edge_index.split(sizes, dim=1)
 
-
-def mask_edge_features(edge_attr, mask_ratio: float):
-    if mask_ratio <= 0 or edge_attr is None:
-        return edge_attr, None, None
-    E = edge_attr.size(0)
-    mask = torch.rand(E, device=edge_attr.device) < mask_ratio
-    masked = edge_attr.clone()
-    masked[mask] = 0
-    return masked, mask, edge_attr  # (edge_attr_orig은 보조손실용으로 보관 가능)
-
-def mask_node_features(x, mask_ratio: float):
-    if mask_ratio <= 0 or x is None:
-        return x, None, None
-    N = x.size(0)
-    mask = torch.rand(N, device=x.device) < mask_ratio
-    masked = x.clone()
-    masked[mask] = 0
-    return masked, mask, x
-

@@ -16,6 +16,17 @@ def train_epoch(logger, loader, model, optimizer, scheduler):
         batch.split = 'train'
         optimizer.zero_grad()
         batch.to(torch.device(cfg.device))
+
+        # === [NEW] apply masking only in training ============================
+        node_ratio = _get_ratio(0.0, 'data.node_mask_ratio')
+        edge_ratio = _get_ratio(0.15, 'data.edge_mask_ratio')
+        if hasattr(batch, 'x'):
+            batch.x = mask_node_features(batch.x, node_ratio)
+        if hasattr(batch, 'edge_attr'):
+            batch.edge_attr = mask_edge_features(batch.edge_attr, edge_ratio)
+        # =====================================================================
+
+        
         pred, true = model(batch)
         loss, pred_score = compute_loss(pred, true)
         loss.backward()
@@ -86,3 +97,34 @@ def train(loggers, loaders, model, optimizer, scheduler):
         clean_ckpt()
 
     logging.info('Task done, results saved in {}'.format(cfg.out_dir))
+
+# === [NEW] masking utilities ================================================
+def _get_ratio(default_val: float, path: str):
+    """cfg.data.edge_mask_ratio / cfg.data.node_mask_ratio 안전 접근."""
+    try:
+        # cfg는 dotdict라 getattr 체인으로 안전 접근
+        d = getattr(cfg, 'data', None)
+        if d is None:
+            return default_val
+        return float(getattr(d, path.split('.')[-1], default_val))
+    except Exception:
+        return default_val
+
+def mask_edge_features(edge_attr, mask_ratio: float):
+    if edge_attr is None or mask_ratio <= 0.0:
+        return edge_attr
+    E = edge_attr.size(0)
+    mask = torch.rand(E, device=edge_attr.device) < mask_ratio
+    out = edge_attr.clone()
+    out[mask] = 0
+    return out
+
+def mask_node_features(x, mask_ratio: float):
+    if x is None or mask_ratio <= 0.0:
+        return x
+    N = x.size(0)
+    mask = torch.rand(N, device=x.device) < mask_ratio
+    out = x.clone()
+    out[mask] = 0
+    return out
+# ============================================================================

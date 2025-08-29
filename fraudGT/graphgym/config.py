@@ -458,6 +458,9 @@ def set_cfg(cfg):
 
     # Perform ReLU inplace
     cfg.mem.inplace = False
+    cfg.data = CN()
+    cfg.data.edge_mask_ratio = 0.0
+    cfg.data.node_mask_ratio = 0.0
 
     # Set user customized cfgs
     for func in register.config_dict.values():

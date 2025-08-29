@@ -101,6 +101,4 @@ def set_cfg_gt(cfg):
     # cfg.gt.bigbird.block_size = 3
 
     # cfg.gt.bigbird.layer_norm_eps = 1e-6
-    cfg.data.edge_mask_ratio = 0.15   
-    cfg.data.node_mask_ratio = 0.0    
 

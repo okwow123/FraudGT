@@ -22,6 +22,9 @@ dataset:
   edge_encoder_bn: False
 num_threads: 24
 num_workers: 18
+data:
+  edge_mask_ratio: 0.15
+  node_mask_ratio: 0.0
 train:
   mode: custom
   sampler: link_neighbor

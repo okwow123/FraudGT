@@ -40,8 +40,10 @@ val:
   tqdm: True
 model:
   type: GTModel
-  loss_fun: weighted_cross_entropy
+  loss_fun: focal_loss_with_hard_mining  # 또는 focal_loss
   loss_fun_weight: [1, 6]
+  focal_gamma: 2.0                        # ⭐ 추가: focusing parameter (1.0~5.0, 높을수록 hard sample에 집중)
+  focal_alpha: 0.75                       # ⭐ 추가: positive class 가중치 (0.5~0.9)
   edge_decoding: dot
   graph_pooling: mean
 gt:

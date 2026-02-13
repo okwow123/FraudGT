@@ -771,6 +771,10 @@ class AddEgoIdsForLinkNeighbor(BaseTransform):
     """
     def __init__(self):
         pass
+    
+    def forward(self, data: Union[Data, HeteroData]):
+        return self.__call__(data)  
+        
 
     def __call__(self, data: Union[Data, HeteroData]):
         x = data.x if not isinstance(data, HeteroData) else data['node'].x
@@ -788,8 +792,6 @@ class AddEgoIdsForLinkNeighbor(BaseTransform):
         
         return data
 
-def forward(self, data: Union[Data, HeteroData]):
-    return self.__call__(data)  
 
 @register_sampler('link_neighbor')
 def get_LinkNeighborLoader(dataset, batch_size, shuffle=True, split='train'):

@@ -1,0 +1,80 @@
+out_dir: /nobackup/users/junhong/Logs/results
+metric_best: f1
+seed: 42
+wandb:
+  use: True
+  project: unifiedGT
+dataset:
+  dir: /content/drive/MyDrive/aml/data/kaggle_datasets/ibm_aml/raw
+  format: AML
+  name: Small-LI
+  reverse_mp: True
+  add_ports: True
+  task: hetero_edge
+  task_type: classification
+  task_entity: ('node', 'to', 'node')
+  transductive: True
+  node_encoder: True
+  node_encoder_name: Hetero_Raw_Structural  # ⭐ 변경: 그래프 구조 특징 사용
+  node_encoder_bn: False
+  edge_encoder: True
+  edge_encoder_name: Hetero_Raw
+  edge_encoder_bn: False
+num_threads: 24
+num_workers: 18
+train:
+  mode: custom
+  sampler: link_neighbor  # balanced_link_neighbor도 시도 가능
+  neighbor_sizes: [50, 50, 10]  # ⭐ 변경: 3-hop으로 확장
+  add_ego_id: True
+  pos_ratio: 0.35  # ⭐ 추가: positive 샘플 비율 (balanced_link_neighbor 사용 시)
+  iter_per_epoch: 256
+  batch_size: 2048
+  eval_period: 4
+  ckpt_period: 100
+  tqdm: True
+  persistent_workers: True
+  pin_memory: True
+val:
+  sampler: link_neighbor
+  neighbor_sizes: [50, 50, 10]  # ⭐ 추가: validation도 3-hop
+  iter_per_epoch: 256
+  tqdm: True
+model:
+  type: GTModel
+  loss_fun: weighted_cross_entropy  # ⭐ Focal Loss 실패 시 원래대로
+  loss_fun_weight: [1, 10]  # ⭐ 변경: positive 가중치 증가
+  edge_decoding: concat  # ⭐ 변경: dot → concat (더 복잡한 패턴 학습)
+  edge_decoder_type: attention  # ⭐ 추가: attention 또는 bilinear
+  edge_attn_heads: 8  # ⭐ 추가: attention head 수
+  graph_pooling: mean
+gt:
+  layer_type: SparseNodeTransformer
+  layers_pre_gt: 1  # ⭐ 변경: 0 → 1 (입력 전처리)
+  layers: 3  # ⭐ 변경: 2 → 3 (더 깊은 모델)
+  layers_post_gt: 3  # ⭐ 변경: 2 → 3
+  attn_heads: 12  # ⭐ 변경: 8 → 12 (더 많은 attention)
+  dim_hidden: 96  # ⭐ 변경: 64 → 96 (더 큰 용량)
+  input_dropout: 0.1  # ⭐ 변경: 0.0 → 0.1
+  dropout: 0.15  # ⭐ 변경: 0.2 → 0.15 (약간 감소)
+  attn_dropout: 0.2  # ⭐ 변경: 0.3 → 0.2 (약간 감소)
+  batch_norm: True  # ⭐ 변경: False → True (학습 안정성)
+  layer_norm: True
+  l2_norm: False
+  act: gelu
+  attn_mask: Edge
+  residual: Concat  # ⭐ 변경: Fixed → Concat (정보 보존)
+  ffn: Type
+  jumping_knowledge: True  # ⭐ 변경: False → True (다층 정보 통합)
+gnn:
+  dropout: 0.15  # ⭐ 변경: 0.2 → 0.15
+  dim_inner: 96  # ⭐ 추가: gt.dim_hidden과 일치
+optim:
+  batch_accumulation: 8
+  clip_grad_norm: True
+  optimizer: adamW
+  weight_decay: 1e-5
+  base_lr: 0.0007  # ⭐ 변경: 0.001 → 0.0007 (더 안정적)
+  max_epoch: 200  # ⭐ 변경: 500 → 200 (과적합 방지)
+  scheduler: cosine_with_warmup
+  num_warmup_epochs: 10  # ⭐ 변경: 5 → 10 (더 긴 warm-up)

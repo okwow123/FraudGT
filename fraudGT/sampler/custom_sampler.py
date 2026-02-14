@@ -770,7 +770,10 @@ class AddEgoIdsForLinkNeighbor(BaseTransform):
     r"""Add IDs to the centre nodes of the batch.
     """
     def __init__(self):
-        pass
+        pass  
+      
+    def forward(self, data: Union[Data, HeteroData]):
+        return self.__call__(data)  
 
     def __call__(self, data: Union[Data, HeteroData]):
         x = data.x if not isinstance(data, HeteroData) else data['node'].x

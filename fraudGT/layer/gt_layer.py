@@ -144,22 +144,27 @@ class GTLayer(nn.Module):
             if self.batch_norm:
                 self.norm2_ffn[node_type] = nn.BatchNorm1d(dim_h)
         
-        # Feed Forward block.
+        # Feed Forward block (SwiGLU: SiLU(W_gate·x) ⊙ W_up·x → W_down).
         if cfg.gt.ffn == 'Single':
-            self.ff_linear1 = nn.Linear(dim_h, dim_h * 2)
-            self.ff_linear2 = nn.Linear(dim_h * 2, dim_h)
+            self.ff_gate = nn.Linear(dim_h, dim_h * 2)
+            self.ff_up = nn.Linear(dim_h, dim_h * 2)
+            self.ff_down = nn.Linear(dim_h * 2, dim_h)
         elif cfg.gt.ffn == 'Type':
-            self.ff_linear1_type = torch.nn.ModuleDict()
-            self.ff_linear2_type = torch.nn.ModuleDict()
+            self.ff_gate_type = torch.nn.ModuleDict()
+            self.ff_up_type = torch.nn.ModuleDict()
+            self.ff_down_type = torch.nn.ModuleDict()
             for node_type in metadata[0]:
-                self.ff_linear1_type[node_type] = nn.Linear(dim_h, dim_h * 2)
-                self.ff_linear2_type[node_type] = nn.Linear(dim_h * 2, dim_h)
-            self.ff_linear1_edge_type = torch.nn.ModuleDict()
-            self.ff_linear2_edge_type = torch.nn.ModuleDict()
+                self.ff_gate_type[node_type] = nn.Linear(dim_h, dim_h * 2)
+                self.ff_up_type[node_type] = nn.Linear(dim_h, dim_h * 2)
+                self.ff_down_type[node_type] = nn.Linear(dim_h * 2, dim_h)
+            self.ff_gate_edge_type = torch.nn.ModuleDict()
+            self.ff_up_edge_type = torch.nn.ModuleDict()
+            self.ff_down_edge_type = torch.nn.ModuleDict()
             for edge_type in metadata[1]:
                 edge_type = "__".join(edge_type)
-                self.ff_linear1_edge_type[edge_type] = nn.Linear(dim_h, dim_h * 2)
-                self.ff_linear2_edge_type[edge_type] = nn.Linear(dim_h * 2, dim_h)
+                self.ff_gate_edge_type[edge_type] = nn.Linear(dim_h, dim_h * 2)
+                self.ff_up_edge_type[edge_type] = nn.Linear(dim_h, dim_h * 2)
+                self.ff_down_edge_type[edge_type] = nn.Linear(dim_h * 2, dim_h)
         
         self.ff_dropout1 = nn.Dropout(cfg.gt.dropout)
         self.ff_dropout2 = nn.Dropout(cfg.gt.dropout)
@@ -519,23 +524,29 @@ class GTLayer(nn.Module):
         return batch
     
     def _ff_block_type(self, x, node_type):
-        """Feed Forward block.
+        """SwiGLU Feed Forward block: SiLU(W_gate·x) ⊙ W_up·x → W_down.
         """
-        x = self.ff_dropout1(self.activation(self.ff_linear1_type[node_type](x)))
-        return self.ff_dropout2(self.ff_linear2_type[node_type](x))
-    
+        gate = F.silu(self.ff_gate_type[node_type](x))
+        up = self.ff_up_type[node_type](x)
+        x = self.ff_dropout1(gate * up)
+        return self.ff_dropout2(self.ff_down_type[node_type](x))
+
     def _ff_block(self, x):
-        """Feed Forward block.
+        """SwiGLU Feed Forward block: SiLU(W_gate·x) ⊙ W_up·x → W_down.
         """
-        x = self.ff_dropout1(self.activation(self.ff_linear1(x)))
-        return self.ff_dropout2(self.ff_linear2(x))
-    
+        gate = F.silu(self.ff_gate(x))
+        up = self.ff_up(x)
+        x = self.ff_dropout1(gate * up)
+        return self.ff_dropout2(self.ff_down(x))
+
     def _ff_block_edge_type(self, x, edge_type):
-        """Feed Forward block.
+        """SwiGLU Feed Forward block: SiLU(W_gate·x) ⊙ W_up·x → W_down.
         """
         edge_type = "__".join(edge_type)
-        x = self.ff_dropout1(self.activation(self.ff_linear1_edge_type[edge_type](x)))
-        return self.ff_dropout2(self.ff_linear2_edge_type[edge_type](x))
+        gate = F.silu(self.ff_gate_edge_type[edge_type](x))
+        up = self.ff_up_edge_type[edge_type](x)
+        x = self.ff_dropout1(gate * up)
+        return self.ff_dropout2(self.ff_down_edge_type[edge_type](x))
 
     # def __repr__(self):
     #     return '{}({}, {})'.format(self.__class__.__name__, self.dim_h,

@@ -9,4 +9,5 @@ from fraudGT.graphgym.register import register_act
 # Add Gaussian Error Linear Unit (GELU).
 register_act('relu', nn.ReLU(inplace=cfg.mem.inplace))
 register_act('gelu', nn.GELU())
+register_act('silu', nn.SiLU())
 register_act('elu', nn.ELU(inplace=cfg.mem.inplace))
